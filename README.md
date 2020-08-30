@@ -1,4 +1,24 @@
+# build
+
+```
+export PATH=/home/teevi/.cargo/bin:$PATH
+rustup update
+rustup target add wasm32-unknown-unknown --toolchain nightly
+#rustup target add wasm32-unknown-unknown
+rustup +nightly --target wasm32-unknown-unknown
+rustup run nightly cargo install cargo-modules
+rustup run nightly cargo build --target wasm32-unknown-unknown
+
+cargo  +nightly build --target wasm32-unknown-unknown --release
+
+# clear 
+# rm -rf  ~/.cargo/registry
+```
+
+
 # oidc-filter
+
+
 
 `oidc-filter` is a WASM plugin for Envoy/Istio that will redirect users to a given authentication URI if they do not present a JWT token.
 
