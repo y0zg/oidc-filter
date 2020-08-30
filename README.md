@@ -1,7 +1,7 @@
 # build
 
 ```
-export PATH=/home/teevi/.cargo/bin:$PATH
+export PATH=/home/user/.cargo/bin:$PATH
 rustup update
 rustup target add wasm32-unknown-unknown --toolchain nightly
 #rustup target add wasm32-unknown-unknown
