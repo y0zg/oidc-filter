@@ -15,7 +15,76 @@ cargo  +nightly build --target wasm32-unknown-unknown --release
 # rm -rf  ~/.cargo/registry
 ```
 
+# TLS
 
+```
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: oidc-filter
+spec:
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: SIDECAR_INBOUND
+      proxy:
+        proxyVersion: '^1\.5.*'
+      listener:
+        filterChain:
+          filter:
+            name: envoy.http_connection_manager
+            subFilter:
+              name: envoy.filters.http.jwt_authn
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        config:
+          config:
+            name: oidc-filter
+            rootId: oidc-filter_root
+            configuration: |
+                {
+                  "auth_cluster": "outbound|80||keycloak-http.keycloak.svc.cluster.local",
+                  "auth_host": "keycloak-http.keycloak.svc.cluster.local:80",
+                  "login_uri": "https://keycloak.example.com/auth/realms/istio/protocol/openid-connect/auth",
+                  "token_uri": "https://keycloak.example.com/auth/realms/istio/protocol/openid-connect/token",
+                  "client_id": "test",
+                  "client_secret": "xxx"
+                }
+            vmConfig:
+              code:
+                local:
+                  filename: /var/local/lib/wasm-filters/oidc.wasm
+              runtime: envoy.wasm.runtime.v8
+              vmId: oidc-filter
+              allow_precompiled: true
+        name: envoy.filters.http.wasm
+  workloadSelector:
+    labels:
+      app: httpbin
+```
+
+```
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: httpbin
+spec:
+  gateways:
+  - gateway
+  hosts:
+  - nginx.example.com
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: httpbin.default.svc.cluster.local
+        port:
+          number: 8000
+
+```
 # oidc-filter
 
 
